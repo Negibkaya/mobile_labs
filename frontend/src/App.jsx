@@ -1,142 +1,122 @@
 import { useState } from "react";
 import axios from "axios";
 import "./App.css";
+import CodeforcesCard from "./components/CodeforcesCard";
+import WeatherCard from "./components/WeatherCard";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
+// Для третьей лабораторной, нужно открыть и 3000 и 8000 ports во вкладке vscode dev tunnels, а также сделать их public
+// const API_URL = "https://721vm7z0-8000.euw.devtunnels.ms";
+
 function App() {
-  // Codeforces
+  // --- Состояния для Codeforces ---
   const [username, setUsername] = useState("");
   const [userData, setUserData] = useState(null);
   const [cfError, setCfError] = useState("");
+  const [isCfLoading, setIsCfLoading] = useState(false);
 
-  // Crypto
-  const [selectedCoin, setSelectedCoin] = useState("bitcoin");
-  const [cryptoData, setCryptoData] = useState(null);
-  const [cryptoError, setCryptoError] = useState("");
+  // --- Состояния для Погоды ---
+  const [city, setCity] = useState("");
+  const [weatherData, setWeatherData] = useState(null);
+  const [weatherError, setWeatherError] = useState("");
+  const [isWeatherLoading, setIsWeatherLoading] = useState(false);
 
-  const coins = [
-    { value: "bitcoin", label: "Bitcoin" },
-    { value: "ethereum", label: "Ethereum" },
-    { value: "tether", label: "Tether" },
-    { value: "solana", label: "Solana" },
-    { value: "cardano", label: "Cardano" },
-    { value: "ripple", label: "Ripple" },
-  ];
+  // --- Состояния для Прогноза ---
+  const [forecastData, setForecastData] = useState(null);
+  const [forecastError, setForecastError] = useState("");
+  const [isForecastLoading, setIsForecastLoading] = useState(false);
 
+  // --- Логика для Codeforces ---
   const getCodeforcesData = async () => {
+    if (!username.trim()) {
+      setCfError("Пожалуйста, введите имя пользователя");
+      return;
+    }
+    setIsCfLoading(true);
     setCfError("");
     setUserData(null);
-
     try {
       const response = await axios.get(
         `${API_URL}/get_data_from_codeforces/${username}`
       );
       setUserData(response.data);
     } catch (error) {
-      setCfError(error.response?.data?.detail || "Ошибка");
+      setCfError(
+        error.response?.data?.detail || "Произошла ошибка при получении данных."
+      );
+    } finally {
+      setIsCfLoading(false);
     }
   };
 
-  const getCryptoData = async () => {
-    setCryptoError("");
-    setCryptoData(null);
-
+  // --- Логика для Погоды ---
+  const getWeatherData = async () => {
+    if (!city.trim()) {
+      setWeatherError("Пожалуйста, введите название города");
+      return;
+    }
+    setIsWeatherLoading(true);
+    setWeatherError("");
+    setWeatherData(null);
     try {
-      const response = await axios.get(
-        `${API_URL}/get_data_from_crypto/${selectedCoin}`
-      );
-      setCryptoData(response.data);
+      const response = await axios.get(`${API_URL}/get_weather/${city}`);
+      setWeatherData(response.data);
     } catch (error) {
-      setCryptoError(error.response?.data?.detail || "Ошибка");
+      setWeatherError(
+        error.response?.data?.detail || "Произошла ошибка при получении данных."
+      );
+    } finally {
+      setIsWeatherLoading(false);
+    }
+  };
+
+  // --- Логика для Прогноза ---
+  const getForecastData = async () => {
+    if (!city.trim()) {
+      setForecastError("Пожалуйста, введите название города");
+      return;
+    }
+    setIsForecastLoading(true);
+    setForecastError("");
+    setForecastData(null);
+    try {
+      const response = await axios.get(`${API_URL}/get_forecast/${city}`);
+      setForecastData(response.data);
+    } catch (error) {
+      setForecastError(
+        error.response?.data?.detail ||
+          "Произошла ошибка при получении прогноза."
+      );
+    } finally {
+      setIsForecastLoading(false);
     }
   };
 
   return (
     <div className="container">
-      <h1 className="title">🚀 Codeforces & Crypto Dashboard</h1>
-
+      <h1 className="title">🌤️ Codeforces & Weather Dashboard</h1>
       <div className="sections">
-        {/* Codeforces Section */}
-        <div className="card">
-          <h2>👨‍💻 Codeforces User Info</h2>
-          <div className="input-group">
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter username"
-              className="input"
-            />
-            <button onClick={getCodeforcesData} className="button">
-              Get User Data
-            </button>
-          </div>
-
-          {cfError && <div className="error">{cfError}</div>}
-
-          {userData && (
-            <div className="result">
-              <h3>{userData.handle}</h3>
-              <div className="info-row">
-                <span>Rating:</span>
-                <strong>{userData.rating || "N/A"}</strong>
-              </div>
-              <div className="info-row">
-                <span>Rank:</span>
-                <strong>{userData.rank || "Unrated"}</strong>
-              </div>
-              <div className="info-row">
-                <span>Max Rating:</span>
-                <strong>{userData.maxRating || "N/A"}</strong>
-              </div>
-              {userData.country && (
-                <div className="info-row">
-                  <span>Country:</span>
-                  <strong>{userData.country}</strong>
-                </div>
-              )}
-              {userData.city && (
-                <div className="info-row">
-                  <span>City:</span>
-                  <strong>{userData.city}</strong>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Crypto Section */}
-        <div className="card">
-          <h2>💰 Cryptocurrency Prices</h2>
-          <div className="input-group">
-            <select
-              value={selectedCoin}
-              onChange={(e) => setSelectedCoin(e.target.value)}
-              className="select"
-            >
-              {coins.map((coin) => (
-                <option key={coin.value} value={coin.value}>
-                  {coin.label}
-                </option>
-              ))}
-            </select>
-            <button onClick={getCryptoData} className="button">
-              Get Price
-            </button>
-          </div>
-
-          {cryptoError && <div className="error">{cryptoError}</div>}
-
-          {cryptoData && (
-            <div className="result">
-              <h3>{coins.find((c) => c.value === selectedCoin)?.label}</h3>
-              <div className="price">
-                ${cryptoData[selectedCoin]?.usd?.toLocaleString() || 0}
-              </div>
-            </div>
-          )}
-        </div>
+        <CodeforcesCard
+          username={username}
+          setUsername={setUsername}
+          getCodeforcesData={getCodeforcesData}
+          userData={userData}
+          cfError={cfError}
+          isCfLoading={isCfLoading}
+        />
+        <WeatherCard
+          city={city}
+          setCity={setCity}
+          getWeatherData={getWeatherData}
+          getForecastData={getForecastData}
+          weatherData={weatherData}
+          weatherError={weatherError}
+          isWeatherLoading={isWeatherLoading}
+          forecastData={forecastData}
+          forecastError={forecastError}
+          isForecastLoading={isForecastLoading}
+        />
       </div>
     </div>
   );

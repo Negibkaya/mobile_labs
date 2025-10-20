@@ -1,11 +1,12 @@
 [project]
-name = "mobile"
+name = "backend"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 dependencies = [
-    "fastapi>=0.117.1",
+    "fastapi>=0.119.1",
+    "python-dotenv>=1.1.1",
     "requests>=2.32.5",
-    "uvicorn>=0.37.0",
+    "uvicorn>=0.38.0",
 ]
