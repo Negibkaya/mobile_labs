@@ -6,9 +6,6 @@ import WeatherCard from "./components/WeatherCard";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-// Для третьей лабораторной, нужно открыть и 3000 и 8000 ports во вкладке vscode dev tunnels, а также сделать их public
-// const API_URL = "https://721vm7z0-8000.euw.devtunnels.ms";
-
 function App() {
   // --- Состояния для Codeforces ---
   const [username, setUsername] = useState("");
